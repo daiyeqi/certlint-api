@@ -15,7 +15,7 @@ before do
 end
 
 get '/' do
-  { "message": "certlint version 0.9.0." }.to_json
+  { "message": "certlint version 1.0.0." }.to_json
 end
 
 post '/v1/parse' do
@@ -35,7 +35,7 @@ post '/v1/parse' do
   OpenSSL::X509::Certificate.new(der).to_text
 end
 
-post '/v1/certlint' do
+post '/v1/lint' do
   raw = request.body.read
 
   if raw.empty?

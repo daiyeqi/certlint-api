@@ -1,7 +1,7 @@
-FROM ruby:2.5-stretch
+FROM ruby:2.7-buster
 LABEL maintainer="Dai Yeqi <daiyeqi@outlook.com>"
 
-ENV CERTLINT_VERSION 0.9.0
+ENV CERTLINT_VERSION 1.0.0
 
 COPY certlint /opt/certlint
 

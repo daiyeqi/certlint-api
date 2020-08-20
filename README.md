@@ -13,4 +13,4 @@ $ docker run -p 9000:9000 --name certlint-api -d daiyeqi/certlint-api
 ```
 ## Usage
 
-Post a DER certificate to `/v1/certlint` endpoint.
+Post a DER certificate to `/v1/lint` endpoint.
