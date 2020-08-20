@@ -15,7 +15,7 @@ before do
 end
 
 get '/' do
-  { "message": "Version (Certlint API: 0.2.0, Certlint: 1.0.0)" }.to_json
+  { "message": "Version (Certlint API: 0.2.1, Certlint: 1.0.0)" }.to_json
 end
 
 post '/v1/parse' do
