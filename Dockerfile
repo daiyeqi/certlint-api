@@ -5,6 +5,8 @@ ENV CERTLINT_VERSION 1.0.0
 
 COPY certlint /opt/certlint
 
+WORKDIR /opt/certlint
+
 RUN certlintDir="/opt/certlint" \
     && gem install -N public_suffix simpleidn sinatra puma \
     && (cd $certlintDir/ext && ruby extconf.rb && make) \
