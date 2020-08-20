@@ -15,10 +15,15 @@ before do
 end
 
 get '/' do
-  { "message": "Version (Certlint API: 0.2.1, Certlint: 1.0.0)" }.to_json
+  { "message": "Version (Certlint API: " + ENV["CERTLINT_API_VERSION"] + ", Certlint: "+ ENV["CERTLINT_VERSION"] + ")" }.to_json
 end
 
-post '/v1/parse' do
+get '/update-date' do
+  system("/bin/bash /opt/certlint/update-data.sh")
+  { "message": "Update Certlint Date" }.to_json
+end
+
+post '/parse' do
   raw = request.body.read
 
   if raw.empty?
@@ -35,7 +40,7 @@ post '/v1/parse' do
   OpenSSL::X509::Certificate.new(der).to_text
 end
 
-post '/v1/lint' do
+post '/lint' do
   raw = request.body.read
 
   if raw.empty?

@@ -1,6 +1,7 @@
 FROM ruby:2.7-buster
 LABEL maintainer="Dai Yeqi <daiyeqi@outlook.com>"
 
+ENV CERTLINT_API_VERSION 0.2.1
 ENV CERTLINT_VERSION 1.0.0
 
 COPY certlint /opt/certlint
@@ -14,10 +15,8 @@ RUN certlintDir="/opt/certlint" \
     && /bin/bash $certlintDir/update-data.sh \
     && rm -rf /var/lib/apt/lists/*
 
-COPY app /opt/certlint-api
-
-WORKDIR /opt/certlint-api
+COPY src /opt/certlint/certlint-api
 
 EXPOSE 9000
 
-CMD ["puma", "config.ru", "-p", "9000"]
+CMD ["puma", "certlint-api/config.ru", "-p", "9000"]
