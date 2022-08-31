@@ -1,8 +1,8 @@
-FROM ruby:2.7-buster
+FROM ruby:3.1-buster
 LABEL maintainer="Dai Yeqi <daiyeqi@outlook.com>"
 
-ENV CERTLINT_API_VERSION 0.2.1
-ENV CERTLINT_VERSION 1.0.0
+ENV CERTLINT_API_VERSION 0.2.2
+ENV CERTLINT_VERSION 1.6.2
 
 COPY certlint /opt/certlint
 
