@@ -21,6 +21,7 @@ require_relative 'certextlint'
 require_relative 'extensions/authorityinfoaccesssyntax'
 require_relative 'extensions/authoritykeyidentifier'
 require_relative 'extensions/basicconstraints'
+require_relative 'extensions/cabforganizationidentifier.rb'
 require_relative 'extensions/certificatepolicies'
 require_relative 'extensions/crldistributionpoints'
 require_relative 'extensions/ctpoison'
@@ -82,7 +83,7 @@ module CertLint
     begin
       der = validator.to_der
       unless der == content
-        messages << "W: #{pdu} is not encoded using DER"
+        messages << "E: #{pdu} is not encoded using DER"
       end
     rescue NoMemoryError
       messages << "E: BadDER in #{pdu}"

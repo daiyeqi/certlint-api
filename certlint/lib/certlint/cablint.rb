@@ -24,8 +24,10 @@ module CertLint
   class CABLint
     BR_EFFECTIVE = Time.utc(2012, 7, 1)
     MONTHS_39 = Time.utc(2015, 4, 2)
-    BR_825 = Time.utc(2018, 3, 1) # After (greater than), not on or after
+    BR_825 = Time.utc(2018, 3, 2) # After 1 March 2018 (greater than), not on or after
     EV_825 = Time.utc(2017, 4, 22)
+    BR_398 = Time.utc(2020, 9, 1)
+    EV_398 = Time.utc(2020, 9, 1)
     NO_SHA1 = Time.utc(2016, 1, 1)
 
     # Allowed algorithms
@@ -44,6 +46,23 @@ module CertLint
     }
 
     LETTERS_NUMBERS = /\p{L}|\p{N}/
+
+    EV_PERMITTED_SUBJECT_ATTRIBUTES = [
+      'O', # EVG 9.2.1
+      'CN', # EVG 9.2.2
+      'businessCategory', # EVG 9.2.3
+      '1.3.6.1.4.1.311.60.2.1.1', 'jurisdictionL', # EVG 9.2.4
+      '1.3.6.1.4.1.311.60.2.1.2', 'jurisdictionST', # EVG 9.2.4
+      '1.3.6.1.4.1.311.60.2.1.3', 'jurisdictionC', # EVG 9.2.4
+      'serialNumber', # EVG 9.2.5
+      'street', # EVG 9.2.6
+      'L', # EVG 9.2.6
+      'ST', # EVG 9.2.6
+      'C', # EVG 9.2.6
+      'postalCode', # EVG 9.2.6
+      'OU', # EVG 9.2.7
+      '2.5.4.97', 'organizationIdentifier', # EVG 9.2.8
+    ]
 
     def self.lint(der)
       messages = []
@@ -233,7 +252,7 @@ module CertLint
       # Things left are subscriber certificates
       cert_type_identified = false
 
-      # Use EKUs and Subject attribute types to guess the cert type
+      # Use EKUs, Subject attribute types, and Policies to guess the cert type
       eku = c.extensions.find { |ex| ex.oid == 'extendedKeyUsage' }
       if eku.nil?
         eku = []
@@ -242,7 +261,19 @@ module CertLint
       end
       subjattrs = subjectarr.map { |a| a[0] }.uniq
 
-      if subjattrs.include?('1.3.6.1.4.1.311.60.2.1.3') || subjattrs.include?('jurisdictionC')
+      is_ev = false
+      certpolicies = c.extensions.find { |ex| ex.oid == 'certificatePolicies' }
+      unless certpolicies.nil?
+        if certpolicies.value.include?('2.23.140.1.') # CABForum certificate policy present?
+          if certpolicies.value.include?('2.23.140.1.1') || certpolicies.value.include?('2.23.140.1.3') # EV TLS or EV Code Signing.
+            is_ev = true
+          end
+        elsif subjattrs.include?('1.3.6.1.4.1.311.60.2.1.3') || subjattrs.include?('jurisdictionC')
+          is_ev = true
+        end
+      end
+
+      if is_ev
         # EV
         messages << 'I: EV certificate identified'
         cert_type_identified = true
@@ -260,6 +291,19 @@ module CertLint
         end
         unless subjattrs.include? 'C'
           messages << 'E: EV certificates must include countryName in subject'
+        end
+
+        if subjattrs.include?('2.5.4.97') || subjattrs.include?('organizationIdentifier')
+          cabfOrgId = c.extensions.find { |ex| ex.oid == '2.23.140.3.1' }
+          if cabfOrgId.nil?
+            messages << 'E: EV certificates must include CABFOrganizationIdentifier when organizationIdentifier in subject'
+          end
+        end
+
+        subjattrs.each do |attr|
+          if !EV_PERMITTED_SUBJECT_ATTRIBUTES.include? attr
+            messages << 'E: EV certificates must not include ' + attr + ' in subject' # EVG 9.2.9
+          end
         end
       end
 
@@ -318,14 +362,20 @@ module CertLint
           messages << "W: TLS Server auth certificates should not contain #{e} usage"
         end
 
-        # 24 hours per day, 60 minutes per hour 60 seconds per minute
-        # Round to 1/1000, which will be fine for durations <= 42.5 years
-        days = ((c.not_after.utc - c.not_before.utc)/(24*60*60)).round(3)
+        # 24 hours per day, 60 minutes per hour, 60 seconds per minute
+        # Add 1 second.  (A certificate whose notBefore and notAfter field values are the same has a validity period of 1 second).
+        days = ((c.not_after.utc - c.not_before.utc + 1)/(24*60*60))
 
         # For all of these, use the longest possible options (e.g. leap years, July/Aug/Sept 3 month seq)
 
-        if subjattrs.include?('1.3.6.1.4.1.311.60.2.1.3') || subjattrs.include?('jurisdictionC')
-          if c.not_before >= EV_825
+        if is_ev
+          if c.not_before >= EV_398
+            if days > 398
+              messages << 'E: EV certificates must be 398 days in validity or less'
+            elsif days > 397
+              messages << 'W: EV certificates should be 397 days in validity or less'
+            end
+          elsif c.not_before >= EV_825
             if days > 825
               messages << 'E: EV certificates must be 825 days in validity or less'
             end
@@ -333,7 +383,13 @@ module CertLint
             # EV: 27 months
             messages << 'E: EV certificates must be 27 months in validity or less'
           end
-        elsif c.not_before > BR_825
+        elsif c.not_before >= BR_398
+          if days > 398
+            messages << 'E: BR certificates must be 398 days in validity or less'
+          elsif days > 397
+            messages << 'W: BR certificates should be 397 days in validity or less'
+          end
+        elsif c.not_before >= BR_825
           if days > 825
             messages << 'E: BR certificates must be 825 days in validity or less'
           end
@@ -385,7 +441,6 @@ module CertLint
           end
         end
 
-        certpolicies = c.extensions.find { |ex| ex.oid == 'certificatePolicies' }
         if certpolicies.nil?
           messages << 'E: BR certificates must include certificatePolicies'
         else
@@ -432,14 +487,18 @@ module CertLint
             when 2
               val = genname.value
               if val.include? '*'
-                x = val.split('.', 2)
-                if (x.length > 1) && (x[1].include? '*')
-                  messages << 'E: Wildcard not in first label of FQDN'
-                elsif x.length == 1
-                  messages << 'E: Bare wildcard'
-                end
-                unless val.start_with? '*.'
-                  messages << 'W: Wildcard other than *.<fqdn> in SAN'
+                if is_ev
+                  messages << 'E: EV certificates must not contain wildcard FQDNs'
+                else
+                  x = val.split('.', 2)
+                  if (x.length > 1) && (x[1].include? '*')
+                    messages << 'E: Wildcard not in first label of FQDN'
+                  elsif x.length == 1
+                    messages << 'E: Bare wildcard'
+                  end
+                  unless val.start_with? '*.'
+                    messages << 'W: Wildcard other than *.<fqdn> in SAN'
+                  end
                 end
               end
               messages += CertLint::IANANames.lint(val).map { |m| m + ' in SAN' }
@@ -457,12 +516,17 @@ module CertLint
               messages << 'E: BR certificates must not contain uniformResourceIdentifier type alternative name'
               next
             when 7
-              if genname.value.length == 4 || genname.value.length == 16
-                n = IPAddr.new_ntoh(genname.value)
-                nameval = n.to_s.downcase
-              else
-                # Certlint already added an error for wrong size, so just skip here
+              if is_ev
+                messages << 'E: EV certificates must not contain iPAddress type alternative name'
                 next
+              else
+                if genname.value.length == 4 || genname.value.length == 16
+                  n = IPAddr.new_ntoh(genname.value)
+                  nameval = n.to_s.downcase
+                else
+                  # Certlint already added an error for wrong size, so just skip here
+                  next
+                end
               end
             when 8
               messages << 'E: BR certificates must not contain registeredID type alternative name'
@@ -502,6 +566,19 @@ module CertLint
               messages << 'E: commonNames in BR certificates must be from SAN entries'
             end
           end
+        end
+
+        attr_types = subjectarr.map { |attr| attr[0] }
+        dup = attr_types.select { |el| attr_types.count(el) > 1 }.uniq
+        # streetAddress, OU, and DC can reasonably appear multiple times
+        dup.delete('street')
+        dup.delete('OU')
+        dup.delete('DC')
+        # There are people with multiple given names and surnames
+        dup.delete('GN')
+        dup.delete('SN')
+        dup.each do |type|
+          messages << "W: Name has multiple #{type} attributes"
         end
       end
 

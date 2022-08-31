@@ -88,6 +88,7 @@ module CertLint
       '2.5.4.46' => :X520dnQualifier, # dnQualifier
       '2.5.4.51' => :DirectoryString, # houseIdentifier
       '2.5.4.54' => :DirectoryString, # dmdName
+      '2.5.4.97' => :DirectoryString, # organizationIdentifier
     }
 
     # List of attributes that are known deprecated
@@ -141,7 +142,7 @@ module CertLint
           end
 
           if DEPRECATED_ATTRIBUTES.include? type
-            attr_messages << "W: Name has deprecated attribute #{attrname}"
+            attr_messages << "I: Name has deprecated attribute #{attrname}"
           end
 
           attr_messages += CertLint.check_pdu(pdu, value.to_der)
@@ -258,16 +259,6 @@ module CertLint
           end
           messages += attr_messages
         end
-      end
-
-      dup = attr_types.select { |el| attr_types.count(el) > 1 }.uniq
-      # streetAddress, OU, and DC can reasonably appear multiple times
-      dup.delete('2.5.4.9')
-      dup.delete('2.5.4.11')
-      dup.delete('0.9.2342.19200300.100.1.25')
-      dup.each do |type|
-        attrname = attr_name(type)
-        messages << "W: Name has multiple #{attrname} attributes"
       end
 
       # Empty names are valid but cause an exception when converting to a string
