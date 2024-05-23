@@ -18,9 +18,9 @@ get '/' do
   { "message": "Version (Certlint API: " + ENV["CERTLINT_API_VERSION"] + ", Certlint: "+ ENV["CERTLINT_VERSION"] + ")" }.to_json
 end
 
-get '/update-date' do
+get '/update-data' do
   system("/bin/bash /opt/certlint/update-data.sh")
-  { "message": "Update Certlint Date" }.to_json
+  { "message": "Update Certlint Data" }.to_json
 end
 
 post '/parse' do

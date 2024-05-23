@@ -1,0 +1,3 @@
+[submodule "certlint"]
+	path = certlint
+	url = https://github.com/certlint/certlint.git
