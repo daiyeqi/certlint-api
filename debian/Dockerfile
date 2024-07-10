@@ -1,8 +1,8 @@
 FROM ruby:3-slim-bookworm
 LABEL maintainer="Dai Yeqi <daiyeqi@nichijou.com>"
 
-ENV CERTLINT_API_VERSION 0.3.3
-ENV CERTLINT_VERSION 1.7.3
+ENV CERTLINT_API_VERSION 0.3.4
+ENV CERTLINT_VERSION 1.7.4
 
 COPY certlint /opt/certlint
 

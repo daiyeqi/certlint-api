@@ -1,6 +1,9 @@
-[![Docker Image CI](https://github.com/daiyeqi/certlint-api/actions/workflows/docker.yml/badge.svg)](https://github.com/daiyeqi/certlint-api/actions/workflows/docker.yml)
+[![build](https://github.com/daiyeqi/certlint-api/actions/workflows/docker.yml/badge.svg)](https://github.com/daiyeqi/certlint-api/actions/workflows/docker.yml)
 [![Docker pulls](https://img.shields.io/docker/pulls/daiyeqi/certlint-api.svg)](https://hub.docker.com/r/daiyeqi/certlint-api/)
-[![License: MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![GitHub release](https://img.shields.io/github/release/daiyeqi/certlint-api.svg)](https://github.com/daiyeqi/certlint-api/releases)
+[![GitHub License](https://img.shields.io/github/license/daiyeqi/certlint-api)
+](https://github.com/daiyeqi/certlint-api/blob/main/LICENSE)
+
 ## certlint api 
 
 forked from [thoom/certlint-api](https://github.com/thoom/certlint-api)
