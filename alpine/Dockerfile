@@ -1,8 +1,8 @@
 FROM ruby:3-alpine
 LABEL maintainer="Dai Yeqi <daiyeqi@nichijou.com>"
 
-ENV CERTLINT_API_VERSION 0.3.4
-ENV CERTLINT_VERSION 1.7.4
+ENV CERTLINT_API_VERSION 0.3.5
+ENV CERTLINT_VERSION 1.7.5
 
 COPY certlint /opt/certlint
 
