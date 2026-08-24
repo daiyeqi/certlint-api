@@ -1,8 +1,13 @@
-FROM ruby:3-slim-trixie
-LABEL maintainer="Dai Yeqi <daiyeqi@nichijou.com>"
+FROM ruby:4-slim-trixie
 
-ENV CERTLINT_API_VERSION=0.3.7
-ENV CERTLINT_VERSION=1.8.5
+ARG CERTLINT_API_VERSION=0.3.8
+ARG CERTLINT_VERSION=1.8.6
+
+LABEL org.opencontainers.image.title="certlint-api" \
+      org.opencontainers.image.version="${CERTLINT_API_VERSION}" \
+      org.opencontainers.image.authors="Dai Yeqi <daiyeqi@nichijou.com>" \
+      org.opencontainers.image.source="https://github.com/daiyeqi/certlint-api" \
+      org.opencontainers.image.licenses="MIT"
 
 RUN certlintDir="/opt/certlint" \
     && apt update && apt install -y --no-install-recommends --no-install-suggests gcc g++ make curl \
