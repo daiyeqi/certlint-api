@@ -1,7 +1,7 @@
 FROM ruby:4-alpine
 
-ARG CERTLINT_API_VERSION=0.3.8
-ARG CERTLINT_VERSION=1.8.6
+ARG CERTLINT_API_VERSION=2.0.0
+ARG CERTLINT_VERSION=2.0.0
 
 LABEL org.opencontainers.image.title="certlint-api" \
       org.opencontainers.image.version="${CERTLINT_API_VERSION}" \
@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.title="certlint-api" \
       org.opencontainers.image.licenses="MIT"
       
 RUN certlintDir="/opt/certlint" \
-    && apk add --no-cache --virtual .build-deps gcc g++ make \
+    && apk add --no-cache --virtual .build-deps gcc g++ make dos2unix \
     && apk add --no-cache bash curl \
     && export TEMP_HOME="$(mktemp -d)" && cd $TEMP_HOME \
     && curl -L -o $TEMP_HOME/certlint.tar.gz https://github.com/certlint/certlint/archive/refs/tags/v$CERTLINT_VERSION.tar.gz && tar -zxf certlint.tar.gz \

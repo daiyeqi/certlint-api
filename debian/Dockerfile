@@ -1,7 +1,7 @@
 FROM ruby:4-slim-trixie
 
-ARG CERTLINT_API_VERSION=0.3.8
-ARG CERTLINT_VERSION=1.8.6
+ARG CERTLINT_API_VERSION=2.0.0
+ARG CERTLINT_VERSION=2.0.0
 
 LABEL org.opencontainers.image.title="certlint-api" \
       org.opencontainers.image.version="${CERTLINT_API_VERSION}" \
@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.title="certlint-api" \
       org.opencontainers.image.licenses="MIT"
 
 RUN certlintDir="/opt/certlint" \
-    && apt update && apt install -y --no-install-recommends --no-install-suggests gcc g++ make curl \
+    && apt update && apt install -y --no-install-recommends --no-install-suggests gcc g++ make curl dos2unix \
     && export TEMP_HOME="$(mktemp -d)" && cd $TEMP_HOME \
     && curl -L -o $TEMP_HOME/certlint.tar.gz https://github.com/certlint/certlint/archive/refs/tags/v$CERTLINT_VERSION.tar.gz && tar -zxf certlint.tar.gz \
     && mv certlint-$CERTLINT_VERSION $certlintDir && cd $certlintDir \
@@ -18,7 +18,7 @@ RUN certlintDir="/opt/certlint" \
     && (cd $certlintDir/ext && ruby extconf.rb && make -j2) \
     && ln -s $certlintDir/ext/asn1validator.* $certlintDir/lib/ \
     && /bin/bash $certlintDir/update-data.sh \
-    && apt purge -y --auto-remove gcc g++ make && apt autoclean \
+    && apt purge -y --auto-remove gcc g++ make dos2unix && apt autoclean \
     && rm -rf /var/lib/apt/lists/* \
     && echo "Container for $(uname -m) CPU architecture." > /opt/architecture
 
